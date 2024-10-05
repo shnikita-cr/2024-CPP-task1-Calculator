@@ -4,23 +4,31 @@
 #include <vector>
 #include <string>
 #include "../Operations/Operation/Operation.h"
+#include "../Token.h"
+#include "../Parser/Parser.h"
+
 
 class Calculator {
 private:
     std::vector<Operation> operations;
 
     int loadOperations() {
+        //open folder plugins
+        //read every file dll
+        //check if all is ok
         return 0;
     }
 
 public:
     Calculator() {
-        if (!loadOperations()) {
-            std::cerr << "No operations provided in default folder. Exit." << std::endl;
+        if (loadOperations()) {
+            err("no operations provided in default folder. exit");
         }
     };
 
     std::string calculate(const std::string &expression) {
+        Parser parser(expression);
+        parser.parse();
         return "";
     }
 
