@@ -36,8 +36,12 @@ Token Parser::getToken() {
             ss << numberValue;
             return currentToken = NUMBER;
         default:
-            err("bad token");
-            return END;
+            int status = processPlugin(ch);
+            if (status) {
+                err("bad token");
+                return END;
+            }
+            return LINE_FUNCTION;
     }
 }
 
@@ -85,6 +89,7 @@ double Parser::primary() {
         case MINUS:
             getToken();
             return -primary();
+        case LINE_FUNCTION:
         case LP:
             getToken();
             double e;

@@ -6,7 +6,8 @@ enum Token {
     END = 'E',
     NUMBER = 'N',
     LP = '(', RP = ')',
-    PLUS = '+', MINUS = '-', MUL = '*', DIV = '/'
+    PLUS = '+', MINUS = '-', MUL = '*', DIV = '/',
+    LINE_FUNCTION = 'P'
 };
 
 #endif //TASK1_TOKEN_H
