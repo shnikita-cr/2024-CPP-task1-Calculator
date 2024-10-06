@@ -31,7 +31,7 @@ public:
 
     void printOperations() {
         std::cout << "Operations list:" << std::endl;
-        OperationType t = OperationType::ABSTRACT;
+        OperationType t;
         for (Operation *o: operations) {
             t = o->getType();
             std::cout << "\tName: " << std::setw(20) << std::left << o->getName()
@@ -50,7 +50,7 @@ public:
                 case OperationType::BINARY_FUNCTION:
                     std::cout << "BINARY_FUNCTION" << std::endl;
                     break;
-                case OperationType::ABSTRACT:
+                default:
                     std::cout << "ABSTRACT" << std::endl;
                     break;
             }

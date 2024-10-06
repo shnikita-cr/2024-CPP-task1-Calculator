@@ -4,6 +4,7 @@
 #include "../Operation/ArityOperation/UnaryOperation.h"
 
 Token Parser::getToken() {
+    std::string ss_ = ss.str();
     char ch = '\0';
     do {
         if (!ss.get(ch)) {
@@ -96,6 +97,8 @@ double Parser::term() {
 }
 
 double Parser::primary() {
+    std::string ss_;
+    ss_ = ss.str();
     switch (currentToken) {
         case NUMBER:
             getToken();
@@ -103,16 +106,35 @@ double Parser::primary() {
         case MINUS:
             getToken();
             return -primary();
+        case LINE_FUNCTION:
+            getToken();
+            return primary();
         case LP:
-            getToken();
-            double e;
-            e = expr();
-            if (currentToken != RP) {
-                err(") expected");
-                return 0;
+            if (previousToken == LINE_FUNCTION) {
+                getToken();
+                double e;
+                e = expr();
+                if (currentToken != RP) {
+                    err(") expected");
+                    return 0;
+                }
+                UnaryOperation *u;
+                u = dynamic_cast<UnaryOperation *>(currentOperationP);
+                e = u->getResult(e);
+                currentOperationP = nullptr;
+                getToken();
+                return e;
+            } else {
+                getToken();
+                double e;
+                e = expr();
+                if (currentToken != RP) {
+                    err(") expected");
+                    return 0;
+                }
+                getToken();
+                return e;
             }
-            getToken();
-            return e;
         default:
             err("primary expected");
             return 0;
@@ -126,13 +148,14 @@ Token Parser::processPlugin(char ch) {
         while (ss.get(ch) && isalnum(ch))
             functionSymbol.push_back(ch);
         ss << functionSymbol;
+        ss.putback(ch);
+        std::string ss_ = ss.str();
     } else {
         functionSymbol = ch;
     }
     std::cout << "function " << functionSymbol << std::endl;
     for (auto o: operations) {
         if (o->getSymbol() == functionSymbol) {
-            std::cout << "found function!" << std::endl;
             currentOperationP = o;
         }
     }
