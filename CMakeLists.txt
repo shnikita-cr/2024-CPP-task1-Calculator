@@ -8,5 +8,6 @@ add_executable(task1 src/main.cpp
         src/Operation/ArityOperation/UnaryOperation.h
         src/Operation/ArityOperation/BinaryOperation.h
         src/Tech/tech.cpp src/Parser/Parser.cpp
-        src/Operation/OperationType/OperaitionType.h
-        src/Operation/testOp.h src/Calculator/Plugin.h)
+        src/Operation/OperationType/OperationType.h
+        src/Calculator/Plugin.h
+        src/Calculator/Calculator.cpp src/Calculator/Calculator.cpp)

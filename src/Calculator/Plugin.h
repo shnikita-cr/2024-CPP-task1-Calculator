@@ -1,6 +1,7 @@
 #ifndef TASK1_PLUGIN_H
 #define TASK1_PLUGIN_H
 
+#include <windows.h>
 #include "../Operation/Operation.h"
 
 typedef Operation *(*CreateOpFunc)();

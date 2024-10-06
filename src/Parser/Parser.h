@@ -4,10 +4,8 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <utility>
 #include <vector>
 #include "Token.h"
-#include "../Tech/tech.h"
 #include "../Operation/Operation.h"
 
 class Parser {
@@ -25,26 +23,7 @@ private:
 
     double primary();
 
-    int processPlugin(char ch) {
-        if (std::isalpha(ch)) {
-            std::string functionName;
-            functionName.push_back(ch);
-            while (ss.get(ch) && isalnum(ch))
-                functionName.push_back(ch);
-            ss << functionName;
-            currentToken = LINE_FUNCTION;
-            std::cout << "function " << functionName << std::endl;
-//            for (auto &o: operations) {
-//                if (o.getSymbol() == functionName) {
-//                    if (o.getType()=)
-//                }
-//            }
-            return 0;
-        } else {
-            currentToken = LINE_FUNCTION;
-        }
-        return 1;
-    }
+    int processPlugin(char ch);
 
 public:
     Parser() {

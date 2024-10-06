@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
-#include <windows.h>
 #include "Calculator/Calculator.h"
-#include "Operation/Operation.h"
 
 using namespace std;
 

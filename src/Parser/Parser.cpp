@@ -1,4 +1,5 @@
 #include "Parser.h"
+#include "../Tech/tech.h"
 
 Token Parser::getToken() {
     char ch = '\0';
@@ -106,4 +107,25 @@ double Parser::primary() {
             err("primary expected");
             return 0;
     }
+}
+
+int Parser::processPlugin(char ch) {
+    if (std::isalpha(ch)) {
+        std::string functionName;
+        functionName.push_back(ch);
+        while (ss.get(ch) && isalnum(ch))
+            functionName.push_back(ch);
+        ss << functionName;
+        currentToken = LINE_FUNCTION;
+        std::cout << "function " << functionName << std::endl;
+//            for (auto &o: operations) {
+//                if (o.getSymbol() == functionName) {
+//                    if (o.getType()=)
+//                }
+//            }
+        return 0;
+    } else {
+        currentToken = LINE_FUNCTION;
+    }
+    return 1;
 }

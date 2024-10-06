@@ -2,14 +2,11 @@
 #define TASK1_CALCULATOR_H
 
 #include <vector>
-#include <string>
-#include <filesystem>
-#include "../Operation/Operation.h"
-#include "../Parser/Token.h"
-#include "../Parser/Parser.h"
+#include <iomanip>
 #include "Plugin.h"
-
-namespace fs = std::filesystem;
+#include "../Operation/Operation.h"
+#include "../Parser/Parser.h"
+#include "../Tech/tech.h"
 
 class Calculator {
 private:
@@ -17,49 +14,7 @@ private:
     std::vector<Plugin> plugins;
     Parser parser;
 
-    int loadOperations() {
-        std::string path = "..\\plugins";
-        std::vector<fs::path> pluginsPaths;
-        if (fs::is_empty(path)) {
-            err("plugins path " + path + " is empty!");
-            return 1;
-        }
-        fs::path currentPath;
-        for (const auto &entry: fs::directory_iterator(path)) {
-            currentPath = entry.path();
-            if (currentPath.extension() == ".dll") {
-//                std::cout << entry.path() << std::endl;
-                pluginsPaths.emplace_back(currentPath);
-            } else {
-                err("wrong file extension for Plugin " + currentPath.extension().string());
-            }
-        }
-
-        Plugin plugin{};
-        Operation *op;
-        for (const auto &pth: pluginsPaths) {
-            std::string currentPth = pth.string();
-            plugin.hDll = LoadLibraryW(reinterpret_cast<LPCWSTR>(pth.c_str()));
-            if (!plugin.hDll) {
-                std::cerr << "Failed to load DLL!" << std::endl;
-                return -1;
-            }
-            plugin.createF = (CreateOpFunc) GetProcAddress(plugin.hDll, "create");
-            plugin.destroyF = (DestroyOpFunc) GetProcAddress(plugin.hDll, "destroy");
-
-            if (!plugin.destroyF || !plugin.createF) {
-                std::cerr << "Failed to find factory functions!" << std::endl;
-                FreeLibrary(plugin.hDll);
-                return -1;
-            }
-            op = plugin.createF();
-            plugin.op = op;
-
-            plugins.emplace_back(plugin);
-            operations.emplace_back(op);
-        }
-        return 0;
-    }
+    int loadOperations();
 
 public:
     Calculator() {
@@ -76,8 +31,26 @@ public:
 
     void printOperations() {
         std::cout << "Operations list:" << std::endl;
-        for (auto o: operations) {
-            std::cout << "\t" << o->getName() << " symbol: " << o->getSymbol() << std::endl;
+        OperationType t;
+        for (Operation *o: operations) {
+            t = o->getType();
+            switch (t) {
+                case OperationType::BINARY_INFIX:
+                    std::cout << "\tName: " << o->getName() << " Type: " << "BINARY_INFIX" << std::endl;
+                    break;
+                case OperationType::UNARY_POSTFIX:
+                    std::cout << "\tName: " << o->getName() << " Type: " << "UNARY_POSTFIX" << std::endl;
+                    break;
+                case OperationType::UNARY_FUNCTION:
+                    std::cout << "\tName: " << o->getName() << " Type: " << "UNARY_FUNCTION" << std::endl;
+                    break;
+                case OperationType::BINARY_FUNCTION:
+                    std::cout << "\tName: " << o->getName() << " Type: " << "BINARY_FUNCTION" << std::endl;
+                    break;
+                case OperationType::ABSTRACT:
+                    std::cout << "\tName: " << o->getName() << " Type: " << "ABSTRACT" << std::endl;
+                    break;
+            }
         }
     }
 
