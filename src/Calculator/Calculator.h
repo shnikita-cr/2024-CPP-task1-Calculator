@@ -3,19 +3,61 @@
 
 #include <vector>
 #include <string>
-#include "../Operations/Operation/Operation.h"
-#include "../Token.h"
+#include <filesystem>
+#include "../Operation/Operation.h"
+#include "../Parser/Token.h"
 #include "../Parser/Parser.h"
+#include "Plugin.h"
 
+namespace fs = std::filesystem;
 
 class Calculator {
 private:
-    std::vector<Operation> operations;
+    std::vector<Operation *> operations;
+    std::vector<Plugin> plugins;
+    Parser parser;
 
     int loadOperations() {
-        //open folder plugins
-        //read every file dll
-        //check if all is ok
+        std::string path = "..\\plugins";
+        std::vector<fs::path> pluginsPaths;
+        if (fs::is_empty(path)) {
+            err("plugins path " + path + " is empty!");
+            return 1;
+        }
+        fs::path currentPath;
+        for (const auto &entry: fs::directory_iterator(path)) {
+            currentPath = entry.path();
+            if (currentPath.extension() == ".dll") {
+//                std::cout << entry.path() << std::endl;
+                pluginsPaths.emplace_back(currentPath);
+            } else {
+                err("wrong file extension for Plugin " + currentPath.extension().string());
+            }
+        }
+
+        Plugin plugin{};
+        Operation *op;
+        for (const auto &pth: pluginsPaths) {
+            std::string currentPth = pth.string();
+            plugin.hDll = LoadLibraryW(reinterpret_cast<LPCWSTR>(pth.c_str()));
+            if (!plugin.hDll) {
+                std::cerr << "Failed to load DLL!" << std::endl;
+                return -1;
+            }
+            plugin.createF = (CreateOpFunc) GetProcAddress(plugin.hDll, "create");
+            plugin.destroyF = (DestroyOpFunc) GetProcAddress(plugin.hDll, "destroy");
+
+            if (!plugin.destroyF || !plugin.createF) {
+                std::cerr << "Failed to find factory functions!" << std::endl;
+                FreeLibrary(plugin.hDll);
+                return -1;
+            }
+            op = plugin.createF();
+            plugin.op = op;
+
+            plugins.emplace_back(plugin);
+            operations.emplace_back(op);
+        }
         return 0;
     }
 
@@ -23,21 +65,27 @@ public:
     Calculator() {
         if (loadOperations()) {
             err("no operations provided in default folder. exit");
+            exit(1);
         }
+        parser.setOperations(operations);
     };
 
-    std::string calculate(const std::string &expression) {
-        Parser parser(expression);
-        parser.parse();
-        return "";
+    double calculate(const std::string &expression) {
+        return parser.parse(expression);
     }
 
     void printOperations() {
-        std::cout << "Operations list:";
+        std::cout << "Operations list:" << std::endl;
         for (auto o: operations) {
-            std::cout << " " << o.getName();
+            std::cout << "\t" << o->getName() << " symbol: " << o->getSymbol() << std::endl;
         }
-        std::cout << std::endl;
+    }
+
+    ~Calculator() {
+        for (auto &p: plugins) {
+            p.destroyF(p.op);
+            FreeLibrary(p.hDll);
+        }
     }
 };
 

@@ -1,18 +1,20 @@
 #include <iostream>
 #include <string>
-
+#include <windows.h>
 #include "Calculator/Calculator.h"
+#include "Operation/Operation.h"
 
 using namespace std;
 
 int main() {
     Calculator calculator;
-    string expression, result;
+    string expression;
+    double result;
     calculator.printOperations();
     cout << "Calculator start." << endl;
     cout << "To stop calculator type STOP." << endl;
     while (true) {
-        cout << "Input: ";
+        cout << " Input: ";
         cin >> expression;
         if (expression != "STOP") {
             result = calculator.calculate(expression);
