@@ -5,12 +5,13 @@
 
 class UnaryOperation : public Operation {
 public:
-    UnaryOperation() {
-        name = "UnaryOperation";
-        symbol = "u";
-    }
-
     virtual double getResult(double a) = 0;
+
+    std::string getName() override { return "UnaryOperation"; }
+
+    std::string getSymbol() override { return "u"; }
+
+    OperationType getType() override { return OperationType::ABSTRACT; }
 
     virtual ~UnaryOperation() = 0;
 

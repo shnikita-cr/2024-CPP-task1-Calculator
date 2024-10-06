@@ -5,18 +5,12 @@
 #include "OperationType/OperationType.h"
 
 class Operation {
-protected:
-    std::string name;
-    std::string symbol;
-    OperationType type;
 public:
-    Operation() { type = OperationType::ABSTRACT; };
+    virtual std::string getName() { return ""; }
 
-    virtual std::string getName() { return name; }
+    virtual std::string getSymbol() { return ""; }
 
-    virtual std::string getSymbol() { return symbol; }
-
-    virtual OperationType getType() { return type; }
+    virtual OperationType getType() { return OperationType::ABSTRACT; }
 };
 
 #endif

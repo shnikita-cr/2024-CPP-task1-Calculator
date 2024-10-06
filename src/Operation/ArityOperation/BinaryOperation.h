@@ -5,12 +5,13 @@
 
 class BinaryOperation : public Operation {
 public:
-    BinaryOperation() {
-        name = "BinaryOperation";
-        symbol = "b";
-    }
-
     virtual double getResult(double a, double b) = 0;
+
+    std::string getName() override { return "BinaryOperation"; }
+
+    std::string getSymbol() override { return "b"; }
+
+    OperationType getType() override { return OperationType::ABSTRACT; }
 
     virtual ~BinaryOperation() = 0;
 };
