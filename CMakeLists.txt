@@ -3,6 +3,8 @@ project(task1)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+
 add_executable(task1 src/main.cpp
         src/Calculator/Calculator.h
         src/Operation/ArityOperation/UnaryOperation.h
