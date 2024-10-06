@@ -15,6 +15,7 @@ int Calculator::loadOperations() {
     for (const auto &entry: fs::directory_iterator(path)) {
         currentPath = entry.path();
         if (currentPath.extension() == ".dll") {
+            std::cout << currentPath << std::endl;
             pluginsPaths.emplace_back(currentPath);
         } else {
             err("wrong file extension for Plugin " + currentPath.extension().string());
@@ -27,14 +28,15 @@ int Calculator::loadOperations() {
         std::string currentPth = pth.string();
         plugin.hDll = LoadLibraryW(reinterpret_cast<LPCWSTR>(pth.c_str()));
         if (!plugin.hDll) {
-            std::cerr << "Failed to load DLL!" << std::endl;
+            err("Failed to load DLL!");
+            err(currentPth);
             return -1;
         }
         plugin.createF = (CreateOpFunc) GetProcAddress(plugin.hDll, "create");
         plugin.destroyF = (DestroyOpFunc) GetProcAddress(plugin.hDll, "destroy");
 
         if (!plugin.destroyF || !plugin.createF) {
-            std::cerr << "Failed to find factory functions!" << std::endl;
+            err("Failed to find factory functions!");
             FreeLibrary(plugin.hDll);
             return -1;
         }

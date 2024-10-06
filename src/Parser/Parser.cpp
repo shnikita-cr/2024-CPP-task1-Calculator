@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "../Tech/tech.h"
 #include "../Operation/ArityOperation/BinaryOperation.h"
+#include "../Operation/ArityOperation/UnaryOperation.h"
 
 Token Parser::getToken() {
     char ch = '\0';
@@ -57,6 +58,12 @@ double Parser::expr() {
                 getToken();
                 left -= term();
                 break;
+            case UNARY_POSTFIX:
+                getToken();
+                UnaryOperation *u;
+                u = dynamic_cast<UnaryOperation *>(currentOperationP);
+                left = u->getResult(left);
+                currentOperationP = nullptr;
             default:
                 return left;
         }
