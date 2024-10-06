@@ -1,5 +1,6 @@
 #include "Parser.h"
 #include "../Tech/tech.h"
+#include "../Operation/ArityOperation/BinaryOperation.h"
 
 Token Parser::getToken() {
     char ch = '\0';
@@ -12,6 +13,7 @@ Token Parser::getToken() {
     switch (ch) {
         case '\n':
         case '\0':
+            previousToken = currentToken;
             return currentToken = END;
         case '*':
         case '/':
@@ -20,6 +22,7 @@ Token Parser::getToken() {
         case '(':
         case ')':
             ss << ch;
+            previousToken = currentToken;
             return currentToken = (Token) ch;
         case '0':
         case '1':
@@ -35,14 +38,10 @@ Token Parser::getToken() {
             ss.putback(ch);
             ss >> numberValue;
             ss << numberValue;
+            previousToken = currentToken;
             return currentToken = NUMBER;
         default:
-            int status = processPlugin(ch);
-            if (status) {
-                err("bad token");
-                return END;
-            }
-            return LINE_FUNCTION;
+            return processPlugin(ch);
     }
 }
 
@@ -76,6 +75,13 @@ double Parser::term() {
                 getToken();
                 left /= primary();
                 break;
+            case BINARY_INFIX:
+                getToken();
+                BinaryOperation *b;
+                b = dynamic_cast<BinaryOperation *>(currentOperationP);
+                left = b->getResult(left, primary());
+                currentOperationP = nullptr;
+                break;
             default:
                 return left;
         }
@@ -90,7 +96,6 @@ double Parser::primary() {
         case MINUS:
             getToken();
             return -primary();
-        case LINE_FUNCTION:
         case LP:
             getToken();
             double e;
@@ -101,31 +106,50 @@ double Parser::primary() {
             }
             getToken();
             return e;
-//            case NONE:
-//                return 1;
         default:
             err("primary expected");
             return 0;
     }
 }
 
-int Parser::processPlugin(char ch) {
+Token Parser::processPlugin(char ch) {
+    std::string functionSymbol;
     if (std::isalpha(ch)) {
-        std::string functionName;
-        functionName.push_back(ch);
+        functionSymbol.push_back(ch);
         while (ss.get(ch) && isalnum(ch))
-            functionName.push_back(ch);
-        ss << functionName;
-        currentToken = LINE_FUNCTION;
-        std::cout << "function " << functionName << std::endl;
-//            for (auto &o: operations) {
-//                if (o.getSymbol() == functionName) {
-//                    if (o.getType()=)
-//                }
-//            }
-        return 0;
+            functionSymbol.push_back(ch);
+        ss << functionSymbol;
     } else {
-        currentToken = LINE_FUNCTION;
+        functionSymbol = ch;
     }
-    return 1;
+    std::cout << "function " << functionSymbol << std::endl;
+    for (auto o: operations) {
+        if (o->getSymbol() == functionSymbol) {
+            std::cout << "found function!" << std::endl;
+            currentOperationP = o;
+        }
+    }
+    if (!currentOperationP) {
+        err("can not find given function!");
+        return END;
+    }
+    auto ot = currentOperationP->getType();
+    switch (ot) {
+        case OperationType::BINARY_INFIX:
+            previousToken = currentToken;
+            currentToken = BINARY_INFIX;
+            break;
+        case OperationType::UNARY_POSTFIX:
+            previousToken = currentToken;
+            currentToken = UNARY_POSTFIX;
+            break;
+        case OperationType::UNARY_FUNCTION:
+        case OperationType::BINARY_FUNCTION:
+            previousToken = currentToken;
+            currentToken = LINE_FUNCTION;
+            break;
+        default:
+            break;
+    }
+    return END;
 }

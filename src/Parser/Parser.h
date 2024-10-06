@@ -11,6 +11,8 @@
 class Parser {
 private:
     Token currentToken;
+    Token previousToken;
+    Operation *currentOperationP;
     double numberValue;
     std::stringstream ss;
     std::vector<Operation *> operations;
@@ -23,12 +25,14 @@ private:
 
     double primary();
 
-    int processPlugin(char ch);
+    Token processPlugin(char ch);
 
 public:
     Parser() {
         currentToken = NONE;
+        previousToken = NONE;
         numberValue = 0;
+        currentOperationP = nullptr;
     }
 
     void setOperations(const std::vector<Operation *> &_operations) {

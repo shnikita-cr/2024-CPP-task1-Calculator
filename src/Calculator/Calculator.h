@@ -31,24 +31,27 @@ public:
 
     void printOperations() {
         std::cout << "Operations list:" << std::endl;
-        OperationType t;
+        OperationType t = OperationType::ABSTRACT;
         for (Operation *o: operations) {
             t = o->getType();
+            std::cout << "\tName: " << std::setw(20) << std::left << o->getName()
+                      << " Symbol: " << std::setw(7) << std::left << o->getSymbol()
+                      << " Type: ";
             switch (t) {
                 case OperationType::BINARY_INFIX:
-                    std::cout << "\tName: " << o->getName() << " Type: " << "BINARY_INFIX" << std::endl;
+                    std::cout << "BINARY_INFIX" << std::endl;
                     break;
                 case OperationType::UNARY_POSTFIX:
-                    std::cout << "\tName: " << o->getName() << " Type: " << "UNARY_POSTFIX" << std::endl;
+                    std::cout << "UNARY_POSTFIX" << std::endl;
                     break;
                 case OperationType::UNARY_FUNCTION:
-                    std::cout << "\tName: " << o->getName() << " Type: " << "UNARY_FUNCTION" << std::endl;
+                    std::cout << "UNARY_FUNCTION" << std::endl;
                     break;
                 case OperationType::BINARY_FUNCTION:
-                    std::cout << "\tName: " << o->getName() << " Type: " << "BINARY_FUNCTION" << std::endl;
+                    std::cout << "BINARY_FUNCTION" << std::endl;
                     break;
                 case OperationType::ABSTRACT:
-                    std::cout << "\tName: " << o->getName() << " Type: " << "ABSTRACT" << std::endl;
+                    std::cout << "ABSTRACT" << std::endl;
                     break;
             }
         }
