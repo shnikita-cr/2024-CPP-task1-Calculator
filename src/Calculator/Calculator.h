@@ -47,11 +47,8 @@ public:
                 case OperationType::UNARY_FUNCTION:
                     std::cout << "UNARY_FUNCTION" << std::endl;
                     break;
-                case OperationType::BINARY_FUNCTION:
-                    std::cout << "BINARY_FUNCTION" << std::endl;
-                    break;
                 default:
-                    std::cout << "ABSTRACT" << std::endl;
+                    std::cout << "DEFAULT" << std::endl;
                     break;
             }
         }
