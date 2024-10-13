@@ -4,15 +4,14 @@
 #include "../Operation/ArityOperation/UnaryOperation.h"
 
 Token Parser::getToken() {
-    std::string ss_ = ss.str();
     char ch = '\0';
     do {
-        if (!ss.get(ch)) {
+        if(!ss.get(ch)) {
             return currentToken = END;
         }
-    } while ((ch != '\n') && isspace(ch));
+    } while((ch != '\n') && isspace(ch)); // get rid of spaces and \n
 
-    switch (ch) {
+    switch(ch) {
         case '\n':
         case '\0':
             previousToken = currentToken;
@@ -25,7 +24,13 @@ Token Parser::getToken() {
         case ')':
             ss << ch;
             previousToken = currentToken;
-            return currentToken = (Token) ch;
+            currentToken = (Token)ch;
+            if(checkCurrentTokens()) {
+                err("wrong input!");
+                return currentToken = END;
+            } else {
+                return currentToken;
+            }
         case '0':
         case '1':
         case '2':
@@ -41,16 +46,22 @@ Token Parser::getToken() {
             ss >> numberValue;
             ss << numberValue;
             previousToken = currentToken;
-            return currentToken = NUMBER;
+            currentToken = NUMBER;
+            if(checkCurrentTokens()) {
+                err("wrong input!");
+                return currentToken = END;
+            } else {
+                return currentToken;
+            }
         default:
-            return processPlugin(ch);
+            return processOperation(ch);
     }
 }
 
 double Parser::expr() {
     double left = term();
-    while (true) {
-        switch (currentToken) {
+    while(true) {
+        switch(currentToken) {
             case PLUS:
                 getToken();
                 left += term();
@@ -59,12 +70,6 @@ double Parser::expr() {
                 getToken();
                 left -= term();
                 break;
-            case UNARY_POSTFIX:
-                getToken();
-                UnaryOperation *u;
-                u = dynamic_cast<UnaryOperation *>(currentOperationP);
-                left = u->getResult(left);
-                currentOperationP = nullptr;
             default:
                 return left;
         }
@@ -73,8 +78,8 @@ double Parser::expr() {
 
 double Parser::term() {
     double left = primary();
-    while (true) {
-        switch (currentToken) {
+    while(true) {
+        switch(currentToken) {
             case MUL:
                 getToken();
                 left *= primary();
@@ -85,9 +90,32 @@ double Parser::term() {
                 break;
             case BINARY_INFIX:
                 getToken();
-                BinaryOperation *b;
+                const BinaryOperation *b;
                 b = dynamic_cast<BinaryOperation *>(currentOperationP);
-                left = b->getResult(left, primary());
+                try {
+                    left = b->getResult(left, primary());
+                }
+                catch(std::runtime_error e) {
+                    err(e.what());
+                    left = 0;
+                    currentToken = END;
+                    return left;
+                }
+                currentOperationP = nullptr;
+                break;
+            case UNARY_POSTFIX:
+                getToken();
+                const UnaryOperation *u;
+                u = dynamic_cast<UnaryOperation *>(currentOperationP);
+                try {
+                    left = u->getResult(left);
+                }
+                catch(std::runtime_error e) {
+                    err(e.what());
+                    left = 0;
+                    currentToken = END;
+                    return left;
+                }
                 currentOperationP = nullptr;
                 break;
             default:
@@ -97,30 +125,45 @@ double Parser::term() {
 }
 
 double Parser::primary() {
-    std::string ss_;
-    ss_ = ss.str();
-    switch (currentToken) {
+    switch(currentToken) {
         case NUMBER:
             getToken();
             return numberValue;
+        case PLUS:
+            getToken();
+            return expr();
         case MINUS:
             getToken();
-            return -primary();
+            return -expr();
+        //case PLUS:
+        //    getToken();
+        //    return primary();
+        //case MINUS:
+        //    getToken();
+        //    return -primary();
         case LINE_FUNCTION:
             getToken();
             return primary();
         case LP:
-            if (previousToken == LINE_FUNCTION) {
+            if(previousToken == LINE_FUNCTION) {
                 getToken();
                 double e;
                 e = expr();
-                if (currentToken != RP) {
+                if(currentToken != RP) {
                     err(") expected");
                     return 0;
                 }
                 UnaryOperation *u;
                 u = dynamic_cast<UnaryOperation *>(currentOperationP);
-                e = u->getResult(e);
+                try {
+                    e = u->getResult(e);
+                }
+                catch(std::runtime_error er) {
+                    err(er.what());
+                    e = 0;
+                    currentToken = END;
+                    return e;
+                }
                 currentOperationP = nullptr;
                 getToken();
                 return e;
@@ -128,24 +171,26 @@ double Parser::primary() {
                 getToken();
                 double e;
                 e = expr();
-                if (currentToken != RP) {
+                if(currentToken != RP) {
                     err(") expected");
                     return 0;
                 }
                 getToken();
                 return e;
             }
+        case END:
+            return 0;
         default:
             err("primary expected");
             return 0;
     }
 }
 
-Token Parser::processPlugin(char ch) {
+Token Parser::processOperation(char ch) {
     std::string functionSymbol;
-    if (std::isalpha(ch)) {
+    if(std::isalpha(ch)) {
         functionSymbol.push_back(ch);
-        while (ss.get(ch) && isalnum(ch))
+        while(ss.get(ch) && isalnum(ch))
             functionSymbol.push_back(ch);
         ss << functionSymbol;
         ss.putback(ch);
@@ -153,33 +198,36 @@ Token Parser::processPlugin(char ch) {
     } else {
         functionSymbol = ch;
     }
-    std::cout << "function " << functionSymbol << std::endl;
-    for (auto o: operations) {
-        if (o->getSymbol() == functionSymbol) {
+    //std::cout << "function " << functionSymbol << std::endl;
+    for(const auto &o : operations) {
+        if(o->getSymbol() == functionSymbol) {
             currentOperationP = o;
+            break;
         }
     }
-    if (!currentOperationP) {
+    if(!currentOperationP) {
         err("can not find given function!");
         return END;
     }
-    auto ot = currentOperationP->getType();
-    switch (ot) {
+    switch(currentOperationP->getType()) {
         case OperationType::BINARY_INFIX:
             previousToken = currentToken;
-            currentToken = BINARY_INFIX;
+            return currentToken = BINARY_INFIX;
             break;
         case OperationType::UNARY_POSTFIX:
             previousToken = currentToken;
-            currentToken = UNARY_POSTFIX;
+            return currentToken = UNARY_POSTFIX;
             break;
         case OperationType::UNARY_FUNCTION:
-        case OperationType::BINARY_FUNCTION:
             previousToken = currentToken;
-            currentToken = LINE_FUNCTION;
+            return currentToken = LINE_FUNCTION;
             break;
         default:
             break;
     }
     return END;
+}
+
+int Parser::checkCurrentTokens() {
+    return 0;
 }
