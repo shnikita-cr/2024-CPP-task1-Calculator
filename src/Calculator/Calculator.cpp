@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 int Calculator::loadOperations() {
     fs::path operationsLibrariesPathRoot = "plugins";
-    try { 
+    try {
         if(fs::is_empty(operationsLibrariesPathRoot)) {
             err("plugins path '" + fs::absolute(operationsLibrariesPathRoot).string() + "' is empty!");
             return 0;
@@ -48,6 +48,7 @@ int Calculator::loadOperations() {
     }
     catch(fs::filesystem_error e) {
         err(e.what());
+        err(fs::absolute(e.path1()).string());
     }
     return 0;
 }

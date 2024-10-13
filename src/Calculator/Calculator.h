@@ -17,7 +17,7 @@ private:
 
 public:
     Calculator() {
-        if (loadOperations()) {
+        if(loadOperations()) {
             err("no operations loaded. exit");
             exit(1);
         }
@@ -31,7 +31,7 @@ public:
     void printOperations();
 
     ~Calculator() {
-        for (auto &ol: OperationLibraries) {
+        for(auto &ol : OperationLibraries) {
             ol.destroyF(ol.op);
             FreeLibrary(ol.hDll);
         }

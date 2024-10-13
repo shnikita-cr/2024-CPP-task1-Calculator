@@ -12,12 +12,12 @@ int main() {
     calculator.printOperations();
     cout << "Calculator start." << endl;
     cout << "To stop calculator type STOP." << endl;
-    while (true) {
+    while(true) {
         cout << " Input: ";
         cin >> expression;
-        if (expression != "STOP") {
+        if(expression != "STOP") {
             result = calculator.calculate(expression);
-            cout << "Result: " << result << endl;
+            cout << "Result: " << std::fixed << std::setprecision(3) << result << endl;
         } else {
             cout << "Calculator stop." << endl;
             break;
