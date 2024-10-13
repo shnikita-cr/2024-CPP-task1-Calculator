@@ -5,47 +5,77 @@
 namespace fs = std::filesystem;
 
 int Calculator::loadOperations() {
-    std::string path = "..\\plugins";
-    std::vector<fs::path> pluginsPaths;
-    if (fs::is_empty(path)) {
-        err("plugins path " + path + " is empty!");
-        return 1;
-    }
-    fs::path currentPath;
-    for (const auto &entry: fs::directory_iterator(path)) {
-        currentPath = entry.path();
-        if (currentPath.extension() == ".dll") {
-            pluginsPaths.emplace_back(currentPath);
-        } else {
-            err("wrong file extension for Plugin: " + currentPath.extension().string());
+    fs::path operationsLibrariesPathRoot = "plugins";
+    try {
+        if(fs::is_empty(operationsLibrariesPathRoot)) {
+            err("plugins path '" + fs::absolute(operationsLibrariesPathRoot).string() + "' is empty!");
+            return 0;
+        }
+
+        std::vector<fs::path> operationsLibrariesPaths;
+        for(const auto &entry : fs::directory_iterator(operationsLibrariesPathRoot)) {
+            if(entry.path().extension() == ".dll") {
+                operationsLibrariesPaths.emplace_back(entry.path());
+            } else {
+                err("Wrong file extension for Plugin: " + entry.path().extension().string());
+            }
+        }
+
+        OperationLibrary currentOL{};
+        Operation *op;
+        for(const auto &pth : operationsLibrariesPaths) {
+            std::string currentPth = pth.string();
+            currentOL.hDll = LoadLibraryW(reinterpret_cast<LPCWSTR>(pth.c_str()));
+            if(!currentOL.hDll) {
+                DWORD errorCode = GetLastError();
+                err("Failed to load DLL: '" + fs::absolute(currentPth).string() + "' Error code: " + std::to_string(errorCode));
+                continue; //try next dll
+            }
+            currentOL.createF = (CreateOpFunc)GetProcAddress(currentOL.hDll, "create");
+            currentOL.destroyF = (DestroyOpFunc)GetProcAddress(currentOL.hDll, "destroy");
+
+            if(!currentOL.destroyF || !currentOL.createF) {
+                err("Failed to find factory functions!");
+                FreeLibrary(currentOL.hDll);
+                return 1;
+            }
+            op = currentOL.createF();
+            currentOL.op = op;
+
+            OperationLibraries.emplace_back(currentOL);
+            operations.emplace_back(op);
         }
     }
-
-    Plugin plugin{};
-    Operation *op;
-    for (const auto &pth: pluginsPaths) {
-        std::string currentPth = pth.string();
-        plugin.hDll = LoadLibraryW(reinterpret_cast<LPCWSTR>(pth.c_str()));
-        if (!plugin.hDll) {
-            err("Failed to load DLL: " + currentPth);
-            continue;
-        }
-        plugin.createF = (CreateOpFunc) GetProcAddress(plugin.hDll, "create");
-        plugin.destroyF = (DestroyOpFunc) GetProcAddress(plugin.hDll, "destroy");
-
-        if (!plugin.destroyF || !plugin.createF) {
-            err("Failed to find factory functions!");
-            FreeLibrary(plugin.hDll);
-            return -1;
-        }
-        op = plugin.createF();
-        plugin.op = op;
-
-        plugins.emplace_back(plugin);
-        operations.emplace_back(op);
+    catch(fs::filesystem_error e) {
+        err(e.what());
+        err(fs::absolute(e.path1()).string());
     }
     return 0;
 }
 
-namespace fs = std::filesystem;
-
+void Calculator::printOperations() {
+    if(operations.size() != 0) {
+        std::cout << "Operations list:" << std::endl;
+        for(const Operation *o : operations) {
+            std::cout << "\tName: " << std::setw(20) << std::left << o->getName()
+                << " Symbol: " << std::setw(7) << std::left << o->getSymbol()
+                << " Type: ";
+            switch(o->getType()) {
+                case OperationType::BINARY_INFIX:
+                    std::cout << "BINARY_INFIX" << std::endl;
+                    break;
+                case OperationType::UNARY_POSTFIX:
+                    std::cout << "UNARY_POSTFIX" << std::endl;
+                    break;
+                case OperationType::UNARY_FUNCTION:
+                    std::cout << "UNARY_FUNCTION" << std::endl;
+                    break;
+                default:
+                    std::cout << "DEFAULT" << std::endl;
+                    break;
+            }
+        }
+    } else {
+        std::cout << "Operations list: empty." << std::endl;
+    }
+}

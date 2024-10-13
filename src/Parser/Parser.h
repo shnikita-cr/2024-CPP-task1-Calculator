@@ -1,5 +1,4 @@
-#ifndef TASK1_PARSER_H
-#define TASK1_PARSER_H
+#pragma once
 
 #include <string>
 #include <sstream>
@@ -25,27 +24,26 @@ private:
 
     double primary();
 
-    Token processPlugin(char ch);
+    Token processOperation(char ch);
 
+    int checkCurrentTokens();
 public:
-    Parser() {
-        currentToken = NONE;
-        previousToken = NONE;
-        numberValue = 0;
-        currentOperationP = nullptr;
-    }
+    Parser()
+        : currentToken(NONE),
+        previousToken(NONE),
+        currentOperationP(nullptr),
+        numberValue(0.0) {}
 
-    void setOperations(const std::vector<Operation *> &_operations) {
+    void setOperations(std::vector<Operation*>&& _operations) {
         operations = _operations;
     }
 
     double parse(const std::string &_expr) {
-        ss.clear();
+        ss.clear(); //in case it has smth old/incorrect
         ss.str(_expr);
         getToken();
+        if(currentToken == END)
+            return 0;
         return expr();
     }
 };
-
-
-#endif //TASK1_PARSER_H

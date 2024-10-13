@@ -1,12 +1,8 @@
-#ifndef TASK1_OPERATIONTYPE_H
-#define TASK1_OPERATIONTYPE_H
+#pragma once
 
 enum class OperationType {
     BINARY_INFIX,
     UNARY_POSTFIX,
     UNARY_FUNCTION,
-    BINARY_FUNCTION,
     ABSTRACT
 };
-
-#endif //TASK1_OPERATIONTYPE_H

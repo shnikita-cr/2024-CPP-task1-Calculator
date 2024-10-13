@@ -1,21 +1,18 @@
-#ifndef TASK1_BINARYOPERATION_H
-#define TASK1_BINARYOPERATION_H
+#pragma once
 
 #include "../Operation.h"
 
 class BinaryOperation : public Operation {
 public:
-    virtual double getResult(double a, double b) = 0;
+    virtual double getResult(double a, double b) const = 0;
 
-    std::string getName() override { return "BinaryOperation"; }
+    std::string getName() const override { return "BinaryOperation"; }
 
-    std::string getSymbol() override { return "b"; }
+    std::string getSymbol() const override { return "b"; }
 
-    OperationType getType() override { return OperationType::ABSTRACT; }
+    OperationType getType() const override { return OperationType::ABSTRACT; }
 
     virtual ~BinaryOperation() = 0;
 };
-
-#endif //TASK1_BINARYOPERATION_H
 
 BinaryOperation::~BinaryOperation() = default;

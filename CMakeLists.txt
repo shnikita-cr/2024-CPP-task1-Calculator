@@ -1,15 +1,30 @@
-cmake_minimum_required(VERSION 3.25)
-project(task1)
+﻿# CMakeList.txt: проект CMake для task1; включите исходный код и определения,
+# укажите здесь логику для конкретного проекта.
+#
+cmake_minimum_required (VERSION 3.8)
 
-set(CMAKE_CXX_STANDARD 17)
+# Включение горячей перезагрузки для компиляторов MSVC, если поддерживается.
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+project ("task1")
 
-add_executable(task1 src/main.cpp
-        src/Calculator/Calculator.h
-        src/Operation/ArityOperation/UnaryOperation.h
-        src/Operation/ArityOperation/BinaryOperation.h
-        src/Tech/tech.cpp src/Parser/Parser.cpp
-        src/Operation/OperationType/OperationType.h
-        src/Calculator/Plugin.h
-        src/Calculator/Calculator.cpp src/Calculator/Calculator.cpp)
+include_directories("src/")
+
+set(SRC_LIST 
+        src/main.cpp
+        src/Calculator/Calculator.cpp 
+        src/Parser/Parser.cpp
+        src/Tech/tech.cpp)
+
+set(ICO_RC calculator.rc)
+# Добавьте источник в исполняемый файл этого проекта.
+add_executable (${PROJECT_NAME} ${SRC_LIST} ${ICO_RC})
+
+if (CMAKE_VERSION VERSION_GREATER 3.12)
+  set_property(TARGET task1 PROPERTY CXX_STANDARD 20)
+endif()
+
+# TODO: Добавьте тесты и целевые объекты, если это необходимо.
