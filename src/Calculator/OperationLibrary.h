@@ -8,13 +8,13 @@ typedef Operation *(*CreateOpFunc)();
 
 typedef void (*DestroyOpFunc)(Operation *);
 
-struct Plugin {
+struct OperationLibrary {
     CreateOpFunc createF;
     DestroyOpFunc destroyF;
     HMODULE hDll;
     Operation *op;
 
-    Plugin() {
+    OperationLibrary() {
         createF = nullptr;
         destroyF = nullptr;
         hDll = nullptr;
