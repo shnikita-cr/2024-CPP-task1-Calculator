@@ -3,6 +3,28 @@
 #include "../Operation/ArityOperation/BinaryOperation.h"
 #include "../Operation/ArityOperation/UnaryOperation.h"
 
+/*
+* expression:
+*   expr + term
+*   expr - term
+*   term
+* term:
+*   term * primary
+*   term / primary
+*   BINARY_INFIX a&b
+*   UNARY_POSTFIX a!
+*   primary
+* primary;
+*   NUMBER
+*   + primary
+*   - primary
+*   LINE_FUNCTION f()
+*   ( expression )
+*
+* BINARY_INFIX has 1 symbol only
+*
+*/
+
 Token Parser::getToken() {
     char ch = '\0';
     do {
@@ -93,7 +115,11 @@ double Parser::term() {
                 const BinaryOperation *b;
                 b = dynamic_cast<BinaryOperation *>(currentOperationP);
                 try {
-                    left = b->getResult(left, primary());
+                    if(b)
+                        left = b->getResult(left, primary());
+                    else {
+                        err("operation not loaded or was used in composition and deleted ");
+                    }
                 }
                 catch(std::runtime_error e) {
                     err(e.what());
@@ -108,7 +134,11 @@ double Parser::term() {
                 const UnaryOperation *u;
                 u = dynamic_cast<UnaryOperation *>(currentOperationP);
                 try {
-                    left = u->getResult(left);
+                    if(u)
+                        left = u->getResult(left);
+                    else {
+                        err("operation not loaded or was used in composition and deleted ");
+                    }
                 }
                 catch(std::runtime_error e) {
                     err(e.what());
@@ -135,12 +165,6 @@ double Parser::primary() {
         case MINUS:
             getToken();
             return -expr();
-        //case PLUS:
-        //    getToken();
-        //    return primary();
-        //case MINUS:
-        //    getToken();
-        //    return -primary();
         case LINE_FUNCTION:
             getToken();
             return primary();
@@ -156,7 +180,11 @@ double Parser::primary() {
                 UnaryOperation *u;
                 u = dynamic_cast<UnaryOperation *>(currentOperationP);
                 try {
-                    e = u->getResult(e);
+                    if(u)
+                        e = u->getResult(e);
+                    else {
+                        err("operation not loaded or was used in composition and deleted ");
+                    }
                 }
                 catch(std::runtime_error er) {
                     err(er.what());
@@ -190,15 +218,14 @@ Token Parser::processOperation(char ch) {
     std::string functionSymbol;
     if(std::isalpha(ch)) {
         functionSymbol.push_back(ch);
-        while(ss.get(ch) && isalnum(ch))
-            functionSymbol.push_back(ch);
+        while(ss.get(ch) && isalnum(ch)) // function name may consist of letters and numbers 
+            functionSymbol.push_back(ch); //starting from letter
         ss << functionSymbol;
         ss.putback(ch);
         std::string ss_ = ss.str();
     } else {
         functionSymbol = ch;
     }
-    //std::cout << "function " << functionSymbol << std::endl;
     for(const auto &o : operations) {
         if(o->getSymbol() == functionSymbol) {
             currentOperationP = o;
